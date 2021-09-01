@@ -1,0 +1,89 @@
+{% extends "app/layout.html" %} {% block content %} {% load static %}
+
+
+<!---Import Leaflet CSS-->
+<link rel="stylesheet" href="{%static 'app/leaflet/leaflet.css' %}">
+
+<style>
+    #map {
+        height: calc(100vh - 80px) !important;
+    }
+</style>
+
+<div id="map"></div>
+
+<!-- Import Leaflet JS -->
+<script src="{% static 'app/jquery/dist/jquery.min.js' %}"></script>
+<script src="{% static 'app/leaflet/leaflet.js' %}"></script>
+
+<script type="text/javascript">
+    // Url Endpoints
+    var dataUrl = '{% url "quakedataset" %}';
+    var dataUrl1 = '{% url "datapointdataset" %}';
+
+    // Basemap urls
+    var osm_map = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright"> OpenStreetMap</a> contributors'
+    });
+    var osm_humanitarian = L.tileLayer('http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+    var esri_dark_gray_base = L.tileLayer('http://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '&copy; <a href="http://services.arcgisonline.com/arcgis/rest/services">ESRI</a> arcgisonline'
+    });
+    var world_ocean_base = L.tileLayer('http://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '&copy; <a href="http://services.arcgisonline.com/arcgis/rest/services">ESRI</a> arcgisonline'
+    });
+    var world_street_map = L.tileLayer('http://services.arcgisonline.com/arcgis/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+    });
+    var world_imagery = L.tileLayer('http://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    });
+
+
+    // Initialize the map
+    var map = L.map('map', {
+        layers: [world_imagery] // Default basemap
+    }).setView([7.085742384301345, 125.48428416252138], 15)
+
+    // Initialize basemaps
+    var baseLayers = {
+        "Open Street Map": osm_map,
+        "OSM Humanitarian": osm_humanitarian,
+        "Dark Gray Base": esri_dark_gray_base,
+        "World Ocean Base": world_ocean_base,
+        "World Street Map": world_street_map,
+        "World Imagery": world_imagery
+    };
+
+    // Add the layers control
+    L.control.layers(baseLayers).addTo(map);
+
+
+    // Get marker layers
+    $.getJSON(dataUrl1, function(data) {
+        $.each(data, function(i, item) {
+            L.marker(L.latLng(item.fields.Latitude, item.fields.Longitude)).bindPopup("Object Tag: " + item.fields.Object_Tags.toString() + "<br> Count: " + item.fields.Object_Count.toString()).addTo(map);
+        });
+    });
+
+    //Function that allows to locate latitude longtitude on click
+    map.on('click', function(e) {
+        alert("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng)
+    });
+
+    //Polygon Test
+    // var latlngs = [
+    //     [7.086077761413991, 125.4850083589554],
+    //     [7.086115025522551, 125.48555552959444],
+    //     [7.08559332772851, 125.48566818237306],
+    //     [7.085497505620511, 125.48512101173401]
+
+    // ];
+
+    // var polygon = L.polygon(latlngs, {
+    //     color: 'red'
+    // }).addTo(map);
+</script>
+{% endblock %}
